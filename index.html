@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Driver Risk Score System</title>
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   
@@ -18,11 +17,10 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f5f7fa;
     }
 
-    /* Login */
     .login-page {
       display: flex;
       justify-content: center;
@@ -112,7 +110,6 @@
       display: block;
     }
 
-    /* Dashboard */
     .dashboard {
       display: none;
       min-height: 100vh;
@@ -156,7 +153,6 @@
       padding: 25px;
     }
 
-    /* Admin */
     .admin-section {
       background: white;
       padding: 25px;
@@ -191,7 +187,6 @@
     .admin-btn.green { background: #16a085; }
     .admin-btn.orange { background: #e67e22; }
 
-    /* Stats */
     .stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -225,7 +220,6 @@
       font-weight: 500;
     }
 
-    /* Filters */
     .filters-section {
       background: white;
       padding: 25px;
@@ -268,7 +262,6 @@
       background: white;
     }
 
-    /* Checkbox list */
     .checkbox-list {
       border: 1px solid #dcdde1;
       border-radius: 6px;
@@ -349,7 +342,6 @@
     .btn-csv { background: #9b59b6; }
     .btn-pdf { background: #e67e22; }
 
-    /* Table */
     .table-section {
       background: white;
       padding: 25px;
@@ -518,18 +510,18 @@
           </div>
           <div class="filter-col">
             <label>Driver:</label>
-            <select id="filterDrv"><option value="">All</option></select>
+            <select id="filterDrv" onchange="applyFilters()"><option value="">All</option></select>
           </div>
           <div class="filter-col">
             <label>Search:</label>
-            <input type="text" id="filterSearch" placeholder="Search drivers...">
+            <input type="text" id="filterSearch" placeholder="Search drivers..." oninput="applyFilters()">
           </div>
           <div class="filter-col">
             <label>Experience Months:</label>
             <div class="exp-inputs">
-              <input type="number" id="expMin" value="0" min="0">
+              <input type="number" id="expMin" value="0" min="0" oninput="applyFilters()">
               <span>-</span>
-              <input type="number" id="expMax" value="200" min="0">
+              <input type="number" id="expMax" value="200" min="0" oninput="applyFilters()">
             </div>
             <div class="range-label">Range: 0 - 200+ months</div>
           </div>
@@ -551,7 +543,6 @@
   </div>
 
   <script>
-    const API_URL = '/api';
     let user = null;
     let allDrivers = [];
     let displayDrivers = [];
@@ -568,31 +559,27 @@
       btn.textContent = 'Signing in...';
       
       try {
-        const res = await fetch(`${API_URL}/authenticate`, {
+        const res = await fetch('/api/authenticate', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({username, password})
         });
         
-        if (!res.ok) {
-          throw new Error('Authentication failed');
-        }
-        
         const data = await res.json();
-        
-        console.log('Auth response:', data); // Debug
         
         if (data.success) {
           user = data.user;
-          console.log('User logged in:', user); // Debug
-          showDash();
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          document.getElementById('welcomeMsg').textContent = `Welcome, ${user.username}`;
+          if (user.role === 'admin') document.getElementById('adminSection').style.display = 'block';
+          loadDriverData();
         } else {
           errMsg.textContent = data.message || 'Invalid credentials';
           errMsg.classList.add('show');
         }
       } catch (err) {
-        console.error('Login error:', err);
-        errMsg.textContent = 'Connection error: ' + err.message;
+        errMsg.textContent = 'Connection error';
         errMsg.classList.add('show');
       } finally {
         btn.disabled = false;
@@ -600,56 +587,26 @@
       }
     });
 
-    function showDash() {
-      console.log('Showing dashboard for user:', user); // Debug
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('welcomeMsg').textContent = `Welcome, ${user.username}`;
-      if (user.role === 'admin') document.getElementById('adminSection').style.display = 'block';
-      loadDriverData();
-    }
-
     async function loadDriverData() {
-      console.log('Loading data for user:', user); // Debug
-      
-      if (!user) {
-        console.error('No user found!');
-        document.getElementById('tableArea').innerHTML = '<div class="loading" style="color:#e74c3c;">Error: Not logged in</div>';
-        return;
-      }
-      
       document.getElementById('tableArea').innerHTML = '<div class="loading">Loading data...</div>';
       
       try {
-        console.log('Fetching driver data...'); // Debug
-        
-        const res = await fetch(`${API_URL}/getDriverData`, {
+        const res = await fetch('/api/getDriverData', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user: user})
+          headers: {'Content-Type': 'application/json'}
         });
         
-        console.log('Response status:', res.status); // Debug
-        
-        if (!res.ok) {
-          throw new Error(`API returned ${res.status}`);
-        }
-        
         const data = await res.json();
-        
-        console.log('API Response:', data); // Debug
-        console.log('Rows received:', data.rows ? data.rows.length : 0); // Debug
         
         if (data.error) {
           throw new Error(data.error);
         }
         
         if (!data.rows || data.rows.length === 0) {
-          document.getElementById('tableArea').innerHTML = '<div class="loading">No data available from Google Sheets</div>';
+          document.getElementById('tableArea').innerHTML = '<div class="loading">No data available</div>';
           return;
         }
         
-        // Map all 15 columns
         allDrivers = data.rows.map((row, idx) => ({
           sno: idx + 1,
           fullName: row[0] || '',
@@ -669,16 +626,13 @@
           score: parseFloat(row[14]) || 0
         }));
         
-        console.log('Total drivers loaded:', allDrivers.length); // Debug
-        
         displayDrivers = [...allDrivers];
         setupFilters();
         updateStats();
         renderTable();
         
       } catch (err) {
-        console.error('Load error:', err);
-        document.getElementById('tableArea').innerHTML = `<div class="loading" style="color:#e74c3c;">Error loading data: ${err.message}</div>`;
+        document.getElementById('tableArea').innerHTML = `<div class="loading" style="color:#e74c3c;">Error: ${err.message}</div>`;
       }
     }
 
@@ -875,11 +829,6 @@
       document.getElementById('loginPage').style.display = 'flex';
       document.getElementById('loginForm').reset();
     }
-
-    document.getElementById('filterDrv').addEventListener('change', applyFilters);
-    document.getElementById('filterSearch').addEventListener('input', applyFilters);
-    document.getElementById('expMin').addEventListener('input', applyFilters);
-    document.getElementById('expMax').addEventListener('input', applyFilters);
   </script>
 </body>
 </html>
