@@ -17,11 +17,16 @@ export default async function handler(req, res) {
     const API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
 
     if (!API_KEY) {
-      console.error('Missing API_KEY');
-      return res.status(500).json({ error: 'API key not configured' });
+      console.error('GOOGLE_SHEETS_API_KEY not configured');
+      return res.status(500).json({ 
+        error: 'Configuration error',
+        message: 'Google Sheets API key not found. Please add GOOGLE_SHEETS_API_KEY to environment variables in Vercel.'
+      });
     }
 
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+    
+    console.log('Fetching from Google Sheets API...');
     
     const response = await fetch(url);
     
@@ -30,15 +35,19 @@ export default async function handler(req, res) {
       console.error('Sheets API error:', response.status, errorText);
       return res.status(500).json({ 
         error: 'Sheets API error',
-        status: response.status,
-        message: errorText
+        message: `Status ${response.status}: ${errorText}`
       });
     }
     
     const data = await response.json();
+    
+    console.log('Data received:', data.values ? data.values.length : 0, 'rows');
 
-    if (!data.values) {
-      return res.status(200).json({ rows: [] });
+    if (!data.values || data.values.length === 0) {
+      return res.status(200).json({ 
+        rows: [],
+        message: 'No data in sheet'
+      });
     }
 
     return res.status(200).json({
