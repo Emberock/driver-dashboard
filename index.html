@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Risk Score System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo h1 {
+      color: #667eea;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    
+    .logo p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    .form-group label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .login-button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .login-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .error-message {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+
+    #dashboard {
+      display: none;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .logout-btn {
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .logout-btn:hover {
+      background: #c82333;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+      font-size: 18px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    .data-table th, 
+    .data-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      background: #667eea;
+      color: white;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .data-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .data-table td {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .record-count {
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Form -->
+  <div class="login-container" id="loginContainer">
+    <div class="logo">
+      <h1>🚗 Driver Risk Score</h1>
+      <p>Safety Management System</p>
+    </div>
+    
+    <div class="error-message" id="errorMessage"></div>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required>
+      </div>
+      
+      <button type="submit" class="login-button" id="loginBtn">Sign In</button>
+    </form>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="dashboard-header">
+      <h2>Driver Dashboard</h2>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <div id="dashboardContent" class="loading">Loading data...</div>
+  </div>
+
+  <script>
+    // Configuration
+    const SPREADSHEET_ID = '1H_vF3FzQh2e___uxjo-rv8gtnuua6PlbNvIoFhFBIa0';
+    const SHEET_NAME = 'Sheet1';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+    
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = 'toulin123@';
+    
+    let currentUser = null;
+    let allData = [];
+
+    // Parse CSV data
+    function parseCSV(text) {
+      const lines = text.split('\n');
+      const result = [];
+      
+      for (let line of lines) {
+        if (!line.trim()) continue;
+        
+        const row = [];
+        let cell = '';
+        let insideQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            row.push(cell.replace(/^"|"$/g, ''));
+            cell = '';
+          } else {
+            cell += char;
+          }
+        }
+        row.push(cell.replace(/^"|"$/g, ''));
+        result.push(row);
+      }
+      
+      return result;
+    }
+
+    // Login form handler
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('errorMessage');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      errorDiv.classList.remove('show');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+      
+      try {
+        // Check admin credentials
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          currentUser = {
+            username: username,
+            role: 'admin',
+            terminals: ['ALL']
+          };
+          await showDashboard();
+          return;
+        }
+        
+        // For other users, you would check credentials from your spreadsheet
+        // For now, show error
+        errorDiv.textContent = 'Invalid credentials';
+        errorDiv.classList.add('show');
+        
+      } catch (error) {
+        errorDiv.textContent = 'Login error: ' + error.message;
+        errorDiv.classList.add('show');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    });
+
+    async function showDashboard() {
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      
+      try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const data = parseCSV(csvText);
+        
+        if (data.length === 0) {
+          throw new Error('No data found');
+        }
+        
+        const headers = data[0];
+        const rows = data.slice(1);
+        
+        // Filter based on user permissions
+        let filteredRows = rows;
+        if (currentUser.role !== 'admin' && !currentUser.terminals.includes('ALL')) {
+          filteredRows = rows.filter(row => {
+            const location = row[1] ? row[1].toString().trim() : '';
+            return currentUser.terminals.some(t => t === location);
+          });
+        }
+        
+        displayData(headers, filteredRows);
+        
+      } catch (error) {
+        document.getElementById('dashboardContent').innerHTML = 
+          '<p style="color: red;">Error loading data: ' + error.message + '</p>';
+      }
+    }
+
+    function displayData(headers, rows) {
+      const content = document.getElementById('dashboardContent');
+      
+      if (!rows || rows.length === 0) {
+        content.innerHTML = '<p>No data available.</p>';
+        return;
+      }
+      
+      let html = '<div class="table-container"><table class="data-table"><thead><tr>';
+      
+      headers.forEach(header => {
+        html += `<th>${header}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      
+      rows.forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => {
+          html += `<td title="${cell || ''}">${cell || ''}</td>`;
+        });
+        html += '</tr>';
+      });
+      
+      html += '</tbody></table></div>';
+      html += `<p class="record-count">
