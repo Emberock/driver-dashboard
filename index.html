@@ -222,15 +222,9 @@
     <div id="dashboardContent" class="loading">Loading data...</div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script>
-    // Configuration
-    const SPREADSHEET_ID = '1H_vF3FzQh2e___uxjo-rv8gtnuua6PlbNvIoFhFBIa0';
-    const SHEET_NAME = 'Sheet1';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
-    
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = 'toulin123@';
+    // API Configuration - uses relative paths which work on both Vercel and GitHub Pages
+    const API_BASE = '/api';
     
     let currentUser = null;
 
@@ -250,24 +244,30 @@
       loginBtn.textContent = 'Signing in...';
       
       try {
-        // Check admin credentials
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-          console.log('Admin login successful');
-          currentUser = {
-            username: username,
-            role: 'admin',
-            terminals: ['ALL']
-          };
+        const response = await fetch(`${API_BASE}/authenticate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const result = await response.json();
+        console.log('Auth result:', result);
+        
+        if (result.success) {
+          console.log('Login successful');
+          currentUser = result.user;
           await showDashboard();
         } else {
-          console.log('Invalid credentials');
-          errorDiv.textContent = 'Invalid username or password';
+          console.log('Login failed:', result.message);
+          errorDiv.textContent = result.message || 'Invalid credentials';
           errorDiv.classList.add('show');
         }
         
       } catch (error) {
         console.error('Login error:', error);
-        errorDiv.textContent = 'Login error: ' + error.message;
+        errorDiv.textContent = 'Connection error. Please try again.';
         errorDiv.classList.add('show');
       } finally {
         loginBtn.disabled = false;
@@ -276,46 +276,28 @@
     });
 
     async function showDashboard() {
-      console.log('Showing dashboard...');
+      console.log('Showing dashboard for user:', currentUser);
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       
       try {
-        console.log('Fetching data from:', SHEET_URL);
-        
-        // Use PapaParse to fetch and parse CSV
-        Papa.parse(SHEET_URL, {
-          download: true,
-          header: true,
-          complete: function(results) {
-            console.log('Data loaded:', results.data.length, 'rows');
-            
-            if (results.data.length === 0) {
-              document.getElementById('dashboardContent').innerHTML = 
-                '<p>No data found in spreadsheet</p>';
-              return;
-            }
-            
-            // Get headers from first row
-            const headers = Object.keys(results.data[0]);
-            
-            // Filter rows based on user permissions
-            let filteredRows = results.data;
-            if (currentUser.role !== 'admin' && !currentUser.terminals.includes('ALL')) {
-              filteredRows = results.data.filter(row => {
-                const location = row['Location'] ? row['Location'].toString().trim() : '';
-                return currentUser.terminals.some(t => t === location);
-              });
-            }
-            
-            displayData(headers, filteredRows);
+        console.log('Fetching driver data...');
+        const response = await fetch(`${API_BASE}/getDriverData`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          error: function(error) {
-            console.error('Parse error:', error);
-            document.getElementById('dashboardContent').innerHTML = 
-              '<p style="color: red;">Error loading data: ' + error.message + '</p>';
-          }
+          body: JSON.stringify({ user: currentUser })
         });
+        
+        const data = await response.json();
+        console.log('Data received:', data);
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        displayData(data);
         
       } catch (error) {
         console.error('Dashboard error:', error);
@@ -324,12 +306,43 @@
       }
     }
 
-    function displayData(headers, rows) {
+    function displayData(data) {
       const content = document.getElementById('dashboardContent');
       
-      if (!rows || rows.length === 0) {
-        content.innerHTML = '<p>No data available for your location.</p>';
+      if (!data.rows || data.rows.length === 0) {
+        content.innerHTML = '<p>No data available for your permissions.</p>';
         return;
       }
       
-      let html = '<div class="table-container"><table class="data-table">
+      let html = '<div class="table-container"><table class="data-table"><thead><tr>';
+      
+      data.headers.forEach(header => {
+        html += `<th>${header}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      
+      data.rows.forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => {
+          const cellValue = cell || '';
+          html += `<td title="${cellValue}">${cellValue}</td>`;
+        });
+        html += '</tr>';
+      });
+      
+      html += '</tbody></table></div>';
+      html += `<p class="record-count">Showing ${data.rows.length} of ${data.totalAvailable} total records</p>`;
+      
+      content.innerHTML = html;
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('loginContainer').style.display = 'block';
+      document.getElementById('loginForm').reset();
+      document.getElementById('errorMessage').classList.remove('show');
+    }
+  </script>
+</body>
+</html>
