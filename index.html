@@ -268,8 +268,36 @@
       background: white;
     }
 
-    .filter-col select[multiple] {
-      min-height: 90px;
+    /* Checkbox list for multi-select filters */
+    .checkbox-list {
+      border: 1px solid #dcdde1;
+      border-radius: 6px;
+      padding: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+      background: white;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    .checkbox-item label {
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: normal;
+      color: #2c3e50;
+      margin: 0;
     }
 
     .filter-col input[type="text"] {
@@ -478,15 +506,15 @@
         <div class="filter-grid">
           <div class="filter-col">
             <label>Location:</label>
-            <select id="filterLoc" multiple></select>
+            <div class="checkbox-list" id="filterLoc"></div>
           </div>
           <div class="filter-col">
             <label>Region:</label>
-            <select id="filterReg" multiple></select>
+            <div class="checkbox-list" id="filterReg"></div>
           </div>
           <div class="filter-col">
             <label>Division:</label>
-            <select id="filterDiv" multiple></select>
+            <div class="checkbox-list" id="filterDiv"></div>
           </div>
           <div class="filter-col">
             <label>Driver:</label>
@@ -615,16 +643,45 @@
       const divs = [...new Set(allDrivers.map(d => d.zone).filter(Boolean))].sort();
       const drvs = [...new Set(allDrivers.map(d => d.driver).filter(Boolean))].sort();
       
-      document.getElementById('filterLoc').innerHTML = locs.map(l => `<option value="${l}">${l}</option>`).join('');
-      document.getElementById('filterReg').innerHTML = regs.map(r => `<option value="${r}">${r}</option>`).join('');
-      document.getElementById('filterDiv').innerHTML = divs.map(d => `<option value="${d}">${d}</option>`).join('');
-      document.getElementById('filterDrv').innerHTML = '<option value="">All</option>' + drvs.map(d => `<option value="${d}">${d}</option>`).join('');
+      // Create checkboxes for Location
+      document.getElementById('filterLoc').innerHTML = locs.map(l => `
+        <div class="checkbox-item">
+          <input type="checkbox" id="loc_${l}" value="${l}" onchange="applyFilters()">
+          <label for="loc_${l}">${l}</label>
+        </div>
+      `).join('');
+      
+      // Create checkboxes for Region
+      document.getElementById('filterReg').innerHTML = regs.map(r => `
+        <div class="checkbox-item">
+          <input type="checkbox" id="reg_${r}" value="${r}" onchange="applyFilters()">
+          <label for="reg_${r}">${r}</label>
+        </div>
+      `).join('');
+      
+      // Create checkboxes for Division
+      document.getElementById('filterDiv').innerHTML = divs.map(d => `
+        <div class="checkbox-item">
+          <input type="checkbox" id="div_${d}" value="${d}" onchange="applyFilters()">
+          <label for="div_${d}">${d}</label>
+        </div>
+      `).join('');
+      
+      // Single select dropdown for Driver
+      document.getElementById('filterDrv').innerHTML = '<option value="">All</option>' + 
+        drvs.map(d => `<option value="${d}">${d}</option>`).join('');
     }
 
     function applyFilters() {
-      const selLocs = Array.from(document.getElementById('filterLoc').selectedOptions).map(o => o.value);
-      const selRegs = Array.from(document.getElementById('filterReg').selectedOptions).map(o => o.value);
-      const selDivs = Array.from(document.getElementById('filterDiv').selectedOptions).map(o => o.value);
+      // Get checked locations
+      const selLocs = Array.from(document.querySelectorAll('#filterLoc input[type="checkbox"]:checked')).map(cb => cb.value);
+      
+      // Get checked regions
+      const selRegs = Array.from(document.querySelectorAll('#filterReg input[type="checkbox"]:checked')).map(cb => cb.value);
+      
+      // Get checked divisions
+      const selDivs = Array.from(document.querySelectorAll('#filterDiv input[type="checkbox"]:checked')).map(cb => cb.value);
+      
       const selDrv = document.getElementById('filterDrv').value;
       const searchTxt = document.getElementById('filterSearch').value.toLowerCase();
       const minExp = parseInt(document.getElementById('expMin').value) || 0;
@@ -644,9 +701,11 @@
     }
 
     function resetFilters() {
-      document.getElementById('filterLoc').selectedIndex = -1;
-      document.getElementById('filterReg').selectedIndex = -1;
-      document.getElementById('filterDiv').selectedIndex = -1;
+      // Uncheck all checkboxes
+      document.querySelectorAll('#filterLoc input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#filterReg input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#filterDiv input[type="checkbox"]').forEach(cb => cb.checked = false);
+      
       document.getElementById('filterDrv').value = '';
       document.getElementById('filterSearch').value = '';
       document.getElementById('expMin').value = 0;
@@ -658,8 +717,6 @@
 
     function updateStats() {
       const total = displayDrivers.length;
-      // HIGH RISK = score < 0 (negative)
-      // LOW RISK = score >= 0 (zero or positive)
       const highRisk = displayDrivers.filter(d => d.score < 0).length;
       const lowRisk = displayDrivers.filter(d => d.score >= 0).length;
       const avg = total ? (displayDrivers.reduce((sum, d) => sum + d.score, 0) / total).toFixed(1) : '0.0';
@@ -788,9 +845,11 @@
       document.getElementById('loginForm').reset();
     }
 
+    // Auto-apply filters on input changes
+    document.getElementById('filterDrv').addEventListener('change', applyFilters);
     document.getElementById('filterSearch').addEventListener('input', applyFilters);
-    document.getElementById('expMin').addEventListener('change', applyFilters);
-    document.getElementById('expMax').addEventListener('change', applyFilters);
+    document.getElementById('expMin').addEventListener('input', applyFilters);
+    document.getElementById('expMax').addEventListener('input', applyFilters);
   </script>
 </body>
 </html>
