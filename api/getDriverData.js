@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -19,9 +18,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Fetch data from Google Sheets
     const SHEET_ID = '1v4oh56ih0vQDxOECkzfJzPTux5fTOXZMd5o_PcbXXiY';
-    const RANGE = 'Calculated risk score!A2:O'; // Get ALL rows starting from row 2
+    const RANGE = 'Calculated risk score!A2:O';
     const API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
 
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
@@ -33,20 +31,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ rows: [] });
     }
 
-    // Return ALL rows without any filtering
-    const allRows = data.values;
-
-    console.log(`Total rows fetched: ${allRows.length}`); // Debug log
-
     return res.status(200).json({
-      rows: allRows,
-      total: allRows.length
+      rows: data.values
     });
 
   } catch (error) {
-    console.error('Error fetching driver data:', error);
+    console.error('Error:', error);
     return res.status(500).json({ 
-      error: 'Failed to fetch driver data',
+      error: 'Failed to fetch data',
       details: error.message 
     });
   }
