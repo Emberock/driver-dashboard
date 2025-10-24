@@ -201,12 +201,12 @@
     <form id="loginForm">
       <div class="form-group">
         <label for="username">Username</label>
-        <input type="text" id="username" required>
+        <input type="text" id="username" required autocomplete="username">
       </div>
       
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" required>
+        <input type="password" id="password" required autocomplete="current-password">
       </div>
       
       <button type="submit" class="login-button" id="loginBtn">Sign In</button>
@@ -222,57 +222,28 @@
     <div id="dashboardContent" class="loading">Loading data...</div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script>
     // Configuration
     const SPREADSHEET_ID = '1H_vF3FzQh2e___uxjo-rv8gtnuua6PlbNvIoFhFBIa0';
     const SHEET_NAME = 'Sheet1';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
     
     const ADMIN_USERNAME = 'admin';
     const ADMIN_PASSWORD = 'toulin123@';
     
     let currentUser = null;
-    let allData = [];
-
-    // Parse CSV data
-    function parseCSV(text) {
-      const lines = text.split('\n');
-      const result = [];
-      
-      for (let line of lines) {
-        if (!line.trim()) continue;
-        
-        const row = [];
-        let cell = '';
-        let insideQuotes = false;
-        
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          
-          if (char === '"') {
-            insideQuotes = !insideQuotes;
-          } else if (char === ',' && !insideQuotes) {
-            row.push(cell.replace(/^"|"$/g, ''));
-            cell = '';
-          } else {
-            cell += char;
-          }
-        }
-        row.push(cell.replace(/^"|"$/g, ''));
-        result.push(row);
-      }
-      
-      return result;
-    }
 
     // Login form handler
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const username = document.getElementById('username').value;
+      const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       const errorDiv = document.getElementById('errorMessage');
       const loginBtn = document.getElementById('loginBtn');
+      
+      console.log('Login attempt:', username);
       
       errorDiv.classList.remove('show');
       loginBtn.disabled = true;
@@ -281,21 +252,21 @@
       try {
         // Check admin credentials
         if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          console.log('Admin login successful');
           currentUser = {
             username: username,
             role: 'admin',
             terminals: ['ALL']
           };
           await showDashboard();
-          return;
+        } else {
+          console.log('Invalid credentials');
+          errorDiv.textContent = 'Invalid username or password';
+          errorDiv.classList.add('show');
         }
         
-        // For other users, you would check credentials from your spreadsheet
-        // For now, show error
-        errorDiv.textContent = 'Invalid credentials';
-        errorDiv.classList.add('show');
-        
       } catch (error) {
+        console.error('Login error:', error);
         errorDiv.textContent = 'Login error: ' + error.message;
         errorDiv.classList.add('show');
       } finally {
@@ -305,33 +276,49 @@
     });
 
     async function showDashboard() {
+      console.log('Showing dashboard...');
       document.getElementById('loginContainer').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       
       try {
-        const response = await fetch(CSV_URL);
-        const csvText = await response.text();
-        const data = parseCSV(csvText);
+        console.log('Fetching data from:', SHEET_URL);
         
-        if (data.length === 0) {
-          throw new Error('No data found');
-        }
-        
-        const headers = data[0];
-        const rows = data.slice(1);
-        
-        // Filter based on user permissions
-        let filteredRows = rows;
-        if (currentUser.role !== 'admin' && !currentUser.terminals.includes('ALL')) {
-          filteredRows = rows.filter(row => {
-            const location = row[1] ? row[1].toString().trim() : '';
-            return currentUser.terminals.some(t => t === location);
-          });
-        }
-        
-        displayData(headers, filteredRows);
+        // Use PapaParse to fetch and parse CSV
+        Papa.parse(SHEET_URL, {
+          download: true,
+          header: true,
+          complete: function(results) {
+            console.log('Data loaded:', results.data.length, 'rows');
+            
+            if (results.data.length === 0) {
+              document.getElementById('dashboardContent').innerHTML = 
+                '<p>No data found in spreadsheet</p>';
+              return;
+            }
+            
+            // Get headers from first row
+            const headers = Object.keys(results.data[0]);
+            
+            // Filter rows based on user permissions
+            let filteredRows = results.data;
+            if (currentUser.role !== 'admin' && !currentUser.terminals.includes('ALL')) {
+              filteredRows = results.data.filter(row => {
+                const location = row['Location'] ? row['Location'].toString().trim() : '';
+                return currentUser.terminals.some(t => t === location);
+              });
+            }
+            
+            displayData(headers, filteredRows);
+          },
+          error: function(error) {
+            console.error('Parse error:', error);
+            document.getElementById('dashboardContent').innerHTML = 
+              '<p style="color: red;">Error loading data: ' + error.message + '</p>';
+          }
+        });
         
       } catch (error) {
+        console.error('Dashboard error:', error);
         document.getElementById('dashboardContent').innerHTML = 
           '<p style="color: red;">Error loading data: ' + error.message + '</p>';
       }
@@ -341,24 +328,8 @@
       const content = document.getElementById('dashboardContent');
       
       if (!rows || rows.length === 0) {
-        content.innerHTML = '<p>No data available.</p>';
+        content.innerHTML = '<p>No data available for your location.</p>';
         return;
       }
       
-      let html = '<div class="table-container"><table class="data-table"><thead><tr>';
-      
-      headers.forEach(header => {
-        html += `<th>${header}</th>`;
-      });
-      html += '</tr></thead><tbody>';
-      
-      rows.forEach(row => {
-        html += '<tr>';
-        row.forEach(cell => {
-          html += `<td title="${cell || ''}">${cell || ''}</td>`;
-        });
-        html += '</tr>';
-      });
-      
-      html += '</tbody></table></div>';
-      html += `<p class="record-count">
+      let html = '<div class="table-container"><table class="data-table">
