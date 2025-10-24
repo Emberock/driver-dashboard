@@ -573,16 +573,26 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({username, password})
         });
+        
+        if (!res.ok) {
+          throw new Error('Authentication failed');
+        }
+        
         const data = await res.json();
+        
+        console.log('Auth response:', data); // Debug
+        
         if (data.success) {
           user = data.user;
+          console.log('User logged in:', user); // Debug
           showDash();
         } else {
           errMsg.textContent = data.message || 'Invalid credentials';
           errMsg.classList.add('show');
         }
       } catch (err) {
-        errMsg.textContent = 'Connection error';
+        console.error('Login error:', err);
+        errMsg.textContent = 'Connection error: ' + err.message;
         errMsg.classList.add('show');
       } finally {
         btn.disabled = false;
@@ -591,6 +601,7 @@
     });
 
     function showDash() {
+      console.log('Showing dashboard for user:', user); // Debug
       document.getElementById('loginPage').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('welcomeMsg').textContent = `Welcome, ${user.username}`;
@@ -599,24 +610,46 @@
     }
 
     async function loadDriverData() {
+      console.log('Loading data for user:', user); // Debug
+      
+      if (!user) {
+        console.error('No user found!');
+        document.getElementById('tableArea').innerHTML = '<div class="loading" style="color:#e74c3c;">Error: Not logged in</div>';
+        return;
+      }
+      
       document.getElementById('tableArea').innerHTML = '<div class="loading">Loading data...</div>';
+      
       try {
+        console.log('Fetching driver data...'); // Debug
+        
         const res = await fetch(`${API_URL}/getDriverData`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user})
+          body: JSON.stringify({user: user})
         });
+        
+        console.log('Response status:', res.status); // Debug
+        
+        if (!res.ok) {
+          throw new Error(`API returned ${res.status}`);
+        }
+        
         const data = await res.json();
         
         console.log('API Response:', data); // Debug
+        console.log('Rows received:', data.rows ? data.rows.length : 0); // Debug
         
-        if (data.error) throw new Error(data.error);
+        if (data.error) {
+          throw new Error(data.error);
+        }
         
         if (!data.rows || data.rows.length === 0) {
-          document.getElementById('tableArea').innerHTML = '<div class="loading">No data available</div>';
+          document.getElementById('tableArea').innerHTML = '<div class="loading">No data available from Google Sheets</div>';
           return;
         }
         
+        // Map all 15 columns
         allDrivers = data.rows.map((row, idx) => ({
           sno: idx + 1,
           fullName: row[0] || '',
@@ -642,9 +675,10 @@
         setupFilters();
         updateStats();
         renderTable();
+        
       } catch (err) {
         console.error('Load error:', err);
-        document.getElementById('tableArea').innerHTML = `<div class="loading" style="color:#e74c3c;">Error: ${err.message}</div>`;
+        document.getElementById('tableArea').innerHTML = `<div class="loading" style="color:#e74c3c;">Error loading data: ${err.message}</div>`;
       }
     }
 
