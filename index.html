@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Driver Risk Score System</title>
   
-  <!-- Libraries for export functionality -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -17,13 +16,13 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f7fa;
     }
-    
-    /* Login Styles */
+
+    /* Login Page */
     .login-page {
       display: flex;
       justify-content: center;
@@ -31,55 +30,58 @@
       min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    
+
     .login-container {
       background: white;
       padding: 40px;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       width: 400px;
+      max-width: 90%;
     }
-    
+
     .logo {
       text-align: center;
       margin-bottom: 30px;
     }
-    
+
     .logo h1 {
       color: #667eea;
       font-size: 28px;
       margin-bottom: 10px;
     }
-    
+
     .logo p {
       color: #666;
       font-size: 14px;
     }
-    
+
     .form-group {
       margin-bottom: 20px;
     }
-    
+
     .form-group label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
       color: #333;
+      font-size: 14px;
     }
-    
+
     .form-group input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 15px;
       border: 2px solid #e0e0e0;
       border-radius: 10px;
       font-size: 16px;
+      transition: border-color 0.3s;
     }
-    
+
     .form-group input:focus {
       outline: none;
       border-color: #667eea;
     }
-    
+
     .login-button {
       width: 100%;
       padding: 14px;
@@ -90,13 +92,19 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 0.2s;
     }
-    
+
+    .login-button:hover {
+      transform: translateY(-2px);
+    }
+
     .login-button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
     }
-    
+
     .error-message {
       background: #fee;
       color: #c33;
@@ -106,278 +114,355 @@
       display: none;
       border: 1px solid #fcc;
     }
-    
+
     .error-message.show {
       display: block;
     }
-    
+
     /* Dashboard */
     .dashboard {
       display: none;
+      min-height: 100vh;
     }
-    
+
     .navbar {
-      background: #34495e;
+      background: #2c3e50;
       color: white;
-      padding: 15px 30px;
+      padding: 18px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    
+
     .navbar h1 {
       font-size: 20px;
-    }
-    
-    .navbar-right {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    
-    .logout-btn {
-      background: #95a5a6;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
       font-weight: 600;
-    }
-    
-    .dashboard-content {
-      padding: 20px;
-    }
-    
-    /* Admin Controls */
-    .admin-panel {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .admin-panel h2 {
-      margin-bottom: 15px;
-      color: #2c3e50;
-      font-size: 18px;
-    }
-    
-    .admin-buttons {
       display: flex;
+      align-items: center;
       gap: 10px;
     }
-    
-    .admin-btn {
-      padding: 10px 20px;
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .navbar-right span {
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      padding: 10px 24px;
+      background: #7f8c8d;
+      color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #95a5a6;
+    }
+
+    .content {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 25px;
+    }
+
+    /* Admin Panel */
+    .admin-section {
+      background: white;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .admin-section h2 {
+      color: #2c3e50;
+      font-size: 18px;
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+
+    .admin-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .admin-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
       font-weight: 600;
       color: white;
       cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
     }
-    
-    .btn-blue { background: #3498db; }
-    .btn-green { background: #16a085; }
-    .btn-orange { background: #e67e22; }
-    
+
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .admin-btn.blue { background: #3498db; }
+    .admin-btn.green { background: #16a085; }
+    .admin-btn.orange { background: #e67e22; }
+
     /* Stats Grid */
-    .stats-container {
+    .stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
-    
-    .stat-card {
+
+    .stat-box {
+      background: white;
+      padding: 28px 24px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 5px solid;
+      transition: all 0.3s;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .stat-box.blue { border-left-color: #3498db; }
+    .stat-box.red { border-left-color: #e74c3c; }
+    .stat-box.green { border-left-color: #27ae60; }
+    .stat-box.orange { border-left-color: #f39c12; }
+
+    .stat-value {
+      font-size: 42px;
+      font-weight: 700;
+      color: #2c3e50;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-name {
+      font-size: 14px;
+      color: #7f8c8d;
+      font-weight: 500;
+    }
+
+    /* Filters */
+    .filters-section {
       background: white;
       padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      border-left: 4px solid;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    
-    .stat-card.blue { border-left-color: #3498db; }
-    .stat-card.red { border-left-color: #e74c3c; }
-    .stat-card.green { border-left-color: #27ae60; }
-    .stat-card.orange { border-left-color: #f39c12; }
-    
-    .stat-number {
-      font-size: 36px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-    
-    .stat-label {
-      color: #7f8c8d;
-      margin-top: 5px;
-      font-size: 14px;
-    }
-    
-    /* Filters */
-    .filters-panel {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .filters-panel h3 {
-      margin-bottom: 15px;
+
+    .filters-section h3 {
       color: #2c3e50;
       font-size: 18px;
+      margin-bottom: 20px;
+      font-weight: 600;
     }
-    
-    .filters-grid {
+
+    .filter-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 15px;
-      margin-bottom: 15px;
+      gap: 18px;
+      margin-bottom: 22px;
     }
-    
-    .filter-item {
+
+    .filter-col {
       display: flex;
       flex-direction: column;
     }
-    
-    .filter-item label {
-      margin-bottom: 5px;
+
+    .filter-col label {
       font-weight: 600;
+      margin-bottom: 6px;
       color: #2c3e50;
       font-size: 13px;
     }
-    
-    .filter-item select,
-    .filter-item input[type="text"] {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+
+    .filter-col select {
+      padding: 10px;
+      border: 1px solid #dcdde1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .filter-col select[multiple] {
+      min-height: 90px;
+    }
+
+    .filter-col input[type="text"] {
+      padding: 10px;
+      border: 1px solid #dcdde1;
+      border-radius: 6px;
       font-size: 14px;
     }
-    
-    .filter-item select[multiple] {
-      height: 80px;
-    }
-    
-    .slider-group {
+
+    .exp-inputs {
       display: flex;
-      flex-direction: column;
-    }
-    
-    .slider-inputs {
-      display: flex;
-      gap: 10px;
       align-items: center;
+      gap: 8px;
     }
-    
-    .slider-inputs input[type="number"] {
-      width: 60px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+
+    .exp-inputs input {
+      width: 65px;
+      padding: 10px 8px;
+      border: 1px solid #dcdde1;
+      border-radius: 6px;
       font-size: 14px;
+      text-align: center;
     }
-    
-    .slider-value {
+
+    .exp-inputs span {
+      color: #7f8c8d;
+      font-weight: 600;
+    }
+
+    .range-label {
       font-size: 12px;
       color: #7f8c8d;
-      margin-top: 5px;
+      margin-top: 4px;
     }
-    
-    .filter-actions {
+
+    .filter-buttons {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    
-    .filter-btn {
-      padding: 10px 20px;
+
+    .btn {
+      padding: 11px 22px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: 600;
       color: white;
       cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
     }
-    
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
     .btn-apply { background: #3498db; }
     .btn-reset { background: #95a5a6; }
     .btn-refresh { background: #16a085; }
     .btn-csv { background: #9b59b6; }
     .btn-pdf { background: #e67e22; }
-    
-    /* Data Table */
-    .data-panel {
+
+    /* Table Section */
+    .table-section {
       background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    
-    .data-panel h3 {
-      margin-bottom: 15px;
+
+    .table-section h3 {
       color: #2c3e50;
       font-size: 18px;
+      margin-bottom: 20px;
+      font-weight: 600;
     }
-    
-    .table-container {
-      max-height: 600px;
+
+    .table-wrap {
+      overflow-x: auto;
       overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      max-height: 600px;
+      border: 1px solid #ecf0f1;
+      border-radius: 8px;
     }
-    
+
     .data-table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 13px;
     }
-    
+
     .data-table thead {
       position: sticky;
       top: 0;
       z-index: 10;
     }
-    
+
     .data-table th {
       background: #34495e;
       color: white;
-      padding: 12px 8px;
+      padding: 14px 12px;
       text-align: left;
       font-weight: 600;
-      font-size: 12px;
       white-space: nowrap;
       border-right: 1px solid #2c3e50;
     }
-    
+
+    .data-table th:last-child {
+      border-right: none;
+    }
+
     .data-table td {
-      padding: 10px 8px;
+      padding: 12px;
       border-bottom: 1px solid #ecf0f1;
-      font-size: 13px;
       color: #2c3e50;
       white-space: nowrap;
     }
-    
+
     .data-table tbody tr:hover {
       background: #f8f9fa;
     }
-    
-    .score-badge {
-      padding: 4px 8px;
-      border-radius: 3px;
-      color: white;
-      font-weight: bold;
-      font-size: 12px;
-      display: inline-block;
+
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
     }
-    
-    .score-high { background: #e74c3c; }
-    .score-medium { background: #f39c12; }
-    .score-low { background: #27ae60; }
-    
+
+    /* Score Cell with Gradient */
+    .score-cell {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-align: center;
+      display: inline-block;
+      min-width: 60px;
+      color: white;
+    }
+
     .loading {
       text-align: center;
-      padding: 40px;
+      padding: 60px 20px;
       color: #7f8c8d;
+      font-size: 16px;
+    }
+
+    @media (max-width: 1400px) {
+      .filter-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -390,17 +475,17 @@
         <p>Safety Management System</p>
       </div>
       
-      <div class="error-message" id="errorMessage"></div>
+      <div class="error-message" id="errorMsg"></div>
       
       <form id="loginForm">
         <div class="form-group">
           <label>Username</label>
-          <input type="text" id="username" required>
+          <input type="text" id="username" required autocomplete="username">
         </div>
         
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="password" required>
+          <input type="password" id="password" required autocomplete="current-password">
         </div>
         
         <button type="submit" class="login-button" id="loginBtn">Sign In</button>
@@ -410,116 +495,109 @@
 
   <!-- Dashboard -->
   <div class="dashboard" id="dashboard">
-    <!-- Navbar -->
     <div class="navbar">
       <h1>🚛 Driver Risk Score Dashboard</h1>
       <div class="navbar-right">
-        <span id="welcomeText">Welcome, admin</span>
+        <span id="welcomeMsg">Welcome, admin</span>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
 
-    <div class="dashboard-content">
-      <!-- Admin Controls -->
-      <div class="admin-panel" id="adminPanel" style="display:none;">
+    <div class="content">
+      <!-- Admin Section -->
+      <div class="admin-section" id="adminSection" style="display:none;">
         <h2>Admin Controls</h2>
         <div class="admin-buttons">
-          <button class="admin-btn btn-blue" onclick="alert('Manage Users')">Manage Users</button>
-          <button class="admin-btn btn-green" onclick="alert('View Logs')">View Activity Logs</button>
-          <button class="admin-btn btn-orange" onclick="alert('Update Data')">Update Data Source</button>
+          <button class="admin-btn blue">Manage Users</button>
+          <button class="admin-btn green">View Activity Logs</button>
+          <button class="admin-btn orange">Update Data Source</button>
         </div>
       </div>
 
       <!-- Stats -->
-      <div class="stats-container">
-        <div class="stat-card blue">
-          <div class="stat-number" id="totalDrivers">0</div>
-          <div class="stat-label">Total Drivers</div>
+      <div class="stats">
+        <div class="stat-box blue">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-name">Total Drivers</div>
         </div>
-        <div class="stat-card red">
-          <div class="stat-number" id="highRiskDrivers">0</div>
-          <div class="stat-label">High Risk Drivers</div>
+        <div class="stat-box red">
+          <div class="stat-value" id="statHighRisk">0</div>
+          <div class="stat-name">High Risk Drivers</div>
         </div>
-        <div class="stat-card green">
-          <div class="stat-number" id="lowRiskDrivers">0</div>
-          <div class="stat-label">Low Risk Drivers</div>
+        <div class="stat-box green">
+          <div class="stat-value" id="statLowRisk">0</div>
+          <div class="stat-name">Low Risk Drivers</div>
         </div>
-        <div class="stat-card orange">
-          <div class="stat-number" id="avgScore">0</div>
-          <div class="stat-label">Average Score</div>
+        <div class="stat-box orange">
+          <div class="stat-value" id="statAvg">0</div>
+          <div class="stat-name">Average Score</div>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="filters-panel">
+      <div class="filters-section">
         <h3>Filters</h3>
-        <div class="filters-grid">
-          <div class="filter-item">
+        <div class="filter-grid">
+          <div class="filter-col">
             <label>Location:</label>
-            <select id="locationFilter" multiple onchange="applyFilters()">
-              <option value="">All Locations</option>
-            </select>
+            <select id="filterLoc" multiple></select>
           </div>
           
-          <div class="filter-item">
+          <div class="filter-col">
             <label>Region:</label>
-            <select id="regionFilter" multiple onchange="applyFilters()">
-              <option value="">All Regions</option>
-            </select>
+            <select id="filterReg" multiple></select>
           </div>
           
-          <div class="filter-item">
+          <div class="filter-col">
             <label>Division:</label>
-            <select id="divisionFilter" multiple onchange="applyFilters()">
-              <option value="">All Divisions</option>
-            </select>
+            <select id="filterDiv" multiple></select>
           </div>
           
-          <div class="filter-item">
+          <div class="filter-col">
             <label>Driver:</label>
-            <select id="driverFilter" onchange="applyFilters()">
+            <select id="filterDrv">
               <option value="">All</option>
             </select>
           </div>
           
-          <div class="filter-item">
+          <div class="filter-col">
             <label>Search:</label>
-            <input type="text" id="searchFilter" placeholder="Search drivers..." oninput="applyFilters()">
+            <input type="text" id="filterSearch" placeholder="Search drivers...">
           </div>
           
-          <div class="filter-item slider-group">
+          <div class="filter-col">
             <label>Experience Months:</label>
-            <div class="slider-inputs">
-              <input type="number" id="minExp" value="0" min="0" max="200" onchange="applyFilters()">
+            <div class="exp-inputs">
+              <input type="number" id="expMin" value="0" min="0">
               <span>-</span>
-              <input type="number" id="maxExp" value="200" min="0" max="200" onchange="applyFilters()">
+              <input type="number" id="expMax" value="200" min="0">
             </div>
-            <div class="slider-value">Range: 0 - 200+ months</div>
+            <div class="range-label">Range: 0 - 200+ months</div>
           </div>
         </div>
         
-        <div class="filter-actions">
-          <button class="filter-btn btn-apply" onclick="applyFilters()">Apply Filters</button>
-          <button class="filter-btn btn-reset" onclick="resetFilters()">Reset Filters</button>
-          <button class="filter-btn btn-refresh" onclick="loadData()">Refresh Data</button>
-          <button class="filter-btn btn-csv" onclick="exportToCSV()">Export to CSV</button>
-          <button class="filter-btn btn-pdf" onclick="exportToPDF()">Export to PDF</button>
+        <div class="filter-buttons">
+          <button class="btn btn-apply" onclick="applyFilters()">Apply Filters</button>
+          <button class="btn btn-reset" onclick="resetFilters()">Reset Filters</button>
+          <button class="btn btn-refresh" onclick="loadDriverData()">Refresh Data</button>
+          <button class="btn btn-csv" onclick="exportCSV()">Export to CSV</button>
+          <button class="btn btn-pdf" onclick="exportPDF()">Export to PDF</button>
         </div>
       </div>
 
-      <!-- Data Table -->
-      <div class="data-panel">
+      <!-- Table -->
+      <div class="table-section">
         <h3>Driver Risk Assessment Data</h3>
-        <div id="tableContent" class="loading">Loading data...</div>
+        <div id="tableArea" class="loading">Loading data...</div>
       </div>
     </div>
   </div>
 
   <script>
-    const API_BASE = '/api';
-    let currentUser = null;
-    let allData = [];
-    let filteredData = [];
+    const API_URL = '/api';
+    let user = null;
+    let allDrivers = [];
+    let displayDrivers = [];
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -527,66 +605,67 @@
       
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('errorMessage');
-      const loginBtn = document.getElementById('loginBtn');
+      const errMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('loginBtn');
       
-      errorDiv.classList.remove('show');
-      loginBtn.disabled = true;
-      loginBtn.textContent = 'Signing in...';
+      errMsg.classList.remove('show');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
       
       try {
-        const response = await fetch(`${API_BASE}/authenticate`, {
+        const res = await fetch(`${API_URL}/authenticate`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({username, password})
         });
         
-        const result = await response.json();
+        const data = await res.json();
         
-        if (result.success) {
-          currentUser = result.user;
-          showDashboard();
+        if (data.success) {
+          user = data.user;
+          showDash();
         } else {
-          errorDiv.textContent = result.message || 'Invalid credentials';
-          errorDiv.classList.add('show');
+          errMsg.textContent = data.message || 'Invalid credentials';
+          errMsg.classList.add('show');
         }
-      } catch (error) {
-        errorDiv.textContent = 'Connection error';
-        errorDiv.classList.add('show');
+      } catch (err) {
+        errMsg.textContent = 'Connection error';
+        errMsg.classList.add('show');
       } finally {
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Sign In';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
       }
     });
 
-    function showDashboard() {
+    function showDash() {
       document.getElementById('loginPage').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('welcomeText').textContent = `Welcome, ${currentUser.username}`;
+      document.getElementById('welcomeMsg').textContent = `Welcome, ${user.username}`;
       
-      if (currentUser.role === 'admin') {
-        document.getElementById('adminPanel').style.display = 'block';
+      if (user.role === 'admin') {
+        document.getElementById('adminSection').style.display = 'block';
       }
       
-      loadData();
+      loadDriverData();
     }
 
-    async function loadData() {
-      document.getElementById('tableContent').innerHTML = '<div class="loading">Loading data...</div>';
+    async function loadDriverData() {
+      document.getElementById('tableArea').innerHTML = '<div class="loading">Loading data...</div>';
       
       try {
-        const response = await fetch(`${API_BASE}/getDriverData`, {
+        const res = await fetch(`${API_URL}/getDriverData`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ user: currentUser })
+          body: JSON.stringify({user})
         });
         
-        const data = await response.json();
+        const data = await res.json();
         
         if (data.error) throw new Error(data.error);
         
-        allData = data.rows.map((row, index) => ({
-          sno: index + 1,
+        // Map ALL 15 columns exactly as they are
+        allDrivers = data.rows.map((row, idx) => ({
+          sno: idx + 1,
           fullName: row[0] || '',
           location: row[1] || '',
           region: row[2] || '',
@@ -604,105 +683,104 @@
           score: parseFloat(row[14]) || 0
         }));
         
-        filteredData = [...allData];
-        populateFilters();
+        displayDrivers = [...allDrivers];
+        setupFilters();
         updateStats();
-        displayTable();
-      } catch (error) {
-        document.getElementById('tableContent').innerHTML = 
-          `<div class="loading" style="color:#e74c3c;">Error: ${error.message}</div>`;
+        renderTable();
+      } catch (err) {
+        document.getElementById('tableArea').innerHTML = 
+          `<div class="loading" style="color:#e74c3c;">Error: ${err.message}</div>`;
       }
     }
 
-    function populateFilters() {
-      const locations = [...new Set(allData.map(d => d.location).filter(Boolean))].sort();
-      const regions = [...new Set(allData.map(d => d.region).filter(Boolean))].sort();
-      const divisions = [...new Set(allData.map(d => d.zone).filter(Boolean))].sort();
-      const drivers = [...new Set(allData.map(d => d.driver).filter(Boolean))].sort();
+    function setupFilters() {
+      const locs = [...new Set(allDrivers.map(d => d.location).filter(Boolean))].sort();
+      const regs = [...new Set(allDrivers.map(d => d.region).filter(Boolean))].sort();
+      const divs = [...new Set(allDrivers.map(d => d.zone).filter(Boolean))].sort();
+      const drvs = [...new Set(allDrivers.map(d => d.driver).filter(Boolean))].sort();
       
-      const locationSelect = document.getElementById('locationFilter');
-      locationSelect.innerHTML = '<option value="">All Locations</option>';
-      locations.forEach(loc => {
-        locationSelect.innerHTML += `<option value="${loc}">${loc}</option>`;
-      });
-      
-      const regionSelect = document.getElementById('regionFilter');
-      regionSelect.innerHTML = '<option value="">All Regions</option>';
-      regions.forEach(reg => {
-        regionSelect.innerHTML += `<option value="${reg}">${reg}</option>`;
-      });
-      
-      const divisionSelect = document.getElementById('divisionFilter');
-      divisionSelect.innerHTML = '<option value="">All Divisions</option>';
-      divisions.forEach(div => {
-        divisionSelect.innerHTML += `<option value="${div}">${div}</option>`;
-      });
-      
-      const driverSelect = document.getElementById('driverFilter');
-      driverSelect.innerHTML = '<option value="">All</option>';
-      drivers.forEach(drv => {
-        driverSelect.innerHTML += `<option value="${drv}">${drv}</option>`;
-      });
+      document.getElementById('filterLoc').innerHTML = locs.map(l => `<option value="${l}">${l}</option>`).join('');
+      document.getElementById('filterReg').innerHTML = regs.map(r => `<option value="${r}">${r}</option>`).join('');
+      document.getElementById('filterDiv').innerHTML = divs.map(d => `<option value="${d}">${d}</option>`).join('');
+      document.getElementById('filterDrv').innerHTML = '<option value="">All</option>' + drvs.map(d => `<option value="${d}">${d}</option>`).join('');
     }
 
     function applyFilters() {
-      const selectedLocations = Array.from(document.getElementById('locationFilter').selectedOptions).map(o => o.value).filter(v => v);
-      const selectedRegions = Array.from(document.getElementById('regionFilter').selectedOptions).map(o => o.value).filter(v => v);
-      const selectedDivisions = Array.from(document.getElementById('divisionFilter').selectedOptions).map(o => o.value).filter(v => v);
-      const selectedDriver = document.getElementById('driverFilter').value;
-      const searchText = document.getElementById('searchFilter').value.toLowerCase();
-      const minExp = parseInt(document.getElementById('minExp').value) || 0;
-      const maxExp = parseInt(document.getElementById('maxExp').value) || 200;
+      const selLocs = Array.from(document.getElementById('filterLoc').selectedOptions).map(o => o.value);
+      const selRegs = Array.from(document.getElementById('filterReg').selectedOptions).map(o => o.value);
+      const selDivs = Array.from(document.getElementById('filterDiv').selectedOptions).map(o => o.value);
+      const selDrv = document.getElementById('filterDrv').value;
+      const searchTxt = document.getElementById('filterSearch').value.toLowerCase();
+      const minExp = parseInt(document.getElementById('expMin').value) || 0;
+      const maxExp = parseInt(document.getElementById('expMax').value) || 200;
       
-      filteredData = allData.filter(d => {
-        if (selectedLocations.length > 0 && !selectedLocations.includes(d.location)) return false;
-        if (selectedRegions.length > 0 && !selectedRegions.includes(d.region)) return false;
-        if (selectedDivisions.length > 0 && !selectedDivisions.includes(d.zone)) return false;
-        if (selectedDriver && d.driver !== selectedDriver) return false;
-        if (searchText && !d.fullName.toLowerCase().includes(searchText)) return false;
+      displayDrivers = allDrivers.filter(d => {
+        if (selLocs.length && !selLocs.includes(d.location)) return false;
+        if (selRegs.length && !selRegs.includes(d.region)) return false;
+        if (selDivs.length && !selDivs.includes(d.zone)) return false;
+        if (selDrv && d.driver !== selDrv) return false;
+        if (searchTxt && !d.fullName.toLowerCase().includes(searchTxt)) return false;
         if (d.expMonths < minExp || d.expMonths > maxExp) return false;
         return true;
       });
       
       updateStats();
-      displayTable();
+      renderTable();
     }
 
     function resetFilters() {
-      document.getElementById('locationFilter').selectedIndex = -1;
-      document.getElementById('regionFilter').selectedIndex = -1;
-      document.getElementById('divisionFilter').selectedIndex = -1;
-      document.getElementById('driverFilter').value = '';
-      document.getElementById('searchFilter').value = '';
-      document.getElementById('minExp').value = 0;
-      document.getElementById('maxExp').value = 200;
-      
-      filteredData = [...allData];
+      document.getElementById('filterLoc').selectedIndex = -1;
+      document.getElementById('filterReg').selectedIndex = -1;
+      document.getElementById('filterDiv').selectedIndex = -1;
+      document.getElementById('filterDrv').value = '';
+      document.getElementById('filterSearch').value = '';
+      document.getElementById('expMin').value = 0;
+      document.getElementById('expMax').value = 200;
+      displayDrivers = [...allDrivers];
       updateStats();
-      displayTable();
+      renderTable();
     }
 
     function updateStats() {
-      const total = filteredData.length;
-      const highRisk = filteredData.filter(d => d.score < -10).length;
-      const lowRisk = filteredData.filter(d => d.score >= -10).length;
-      const avgScore = total > 0 ? (filteredData.reduce((sum, d) => sum + d.score, 0) / total).toFixed(1) : '0.0';
+      const total = displayDrivers.length;
+      const highRisk = displayDrivers.filter(d => d.score < -10).length;
+      const lowRisk = displayDrivers.filter(d => d.score >= -10).length;
+      const avg = total ? (displayDrivers.reduce((sum, d) => sum + d.score, 0) / total).toFixed(1) : '0.0';
       
-      document.getElementById('totalDrivers').textContent = total;
-      document.getElementById('highRiskDrivers').textContent = highRisk;
-      document.getElementById('lowRiskDrivers').textContent = lowRisk;
-      document.getElementById('avgScore').textContent = avgScore;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statHighRisk').textContent = highRisk;
+      document.getElementById('statLowRisk').textContent = lowRisk;
+      document.getElementById('statAvg').textContent = avg;
     }
 
-    function displayTable() {
-      const content = document.getElementById('tableContent');
+    function getScoreColor(score) {
+      // Red for negative, gray for 0, green for positive
+      if (score < 0) {
+        const intensity = Math.min(Math.abs(score) / 50, 1);
+        const red = 220;
+        const green = Math.floor(50 + (100 * (1 - intensity)));
+        const blue = Math.floor(50 + (50 * (1 - intensity)));
+        return `rgb(${red}, ${green}, ${blue})`;
+      } else if (score === 0) {
+        return '#95a5a6'; // Gray
+      } else {
+        const intensity = Math.min(score / 50, 1);
+        const red = Math.floor(100 + (100 * (1 - intensity)));
+        const green = 200;
+        const blue = Math.floor(100 + (50 * (1 - intensity)));
+        return `rgb(${red}, ${green}, ${blue})`;
+      }
+    }
+
+    function renderTable() {
+      const area = document.getElementById('tableArea');
       
-      if (filteredData.length === 0) {
-        content.innerHTML = '<div class="loading">No data matches filters</div>';
+      if (!displayDrivers.length) {
+        area.innerHTML = '<div class="loading">No data matches filters</div>';
         return;
       }
       
-      let html = '<div class="table-container"><table class="data-table">';
+      let html = '<div class="table-wrap"><table class="data-table">';
       html += '<thead><tr>';
       html += '<th>S.No.</th><th>Full Name</th><th>Location</th><th>Region</th><th>Zone</th>';
       html += '<th>Experience Days</th><th>Exp Months</th><th>Driver</th><th>ISAAC Score</th>';
@@ -710,97 +788,94 @@
       html += '<th>Coachable</th><th>Non Coachable</th><th>Score</th>';
       html += '</tr></thead><tbody>';
       
-      filteredData.forEach(row => {
-        const scoreClass = row.score < -20 ? 'score-high' : row.score < -10 ? 'score-medium' : 'score-low';
+      displayDrivers.forEach(d => {
+        const scoreColor = getScoreColor(d.score);
         html += `<tr>
-          <td>${row.sno}</td>
-          <td>${row.fullName}</td>
-          <td>${row.location}</td>
-          <td>${row.region}</td>
-          <td>${row.zone}</td>
-          <td>${row.expDays}</td>
-          <td>${row.expMonths}</td>
-          <td>${row.driver}</td>
-          <td>${row.isaacScore}</td>
-          <td>${row.ticketNum}</td>
-          <td>${row.overSpeed}</td>
-          <td>${row.allCollisions}</td>
-          <td>${row.highRiskCollisions}</td>
-          <td>${row.coachable}</td>
-          <td>${row.nonCoachable}</td>
-          <td><span class="score-badge ${scoreClass}">${row.score.toFixed(1)}</span></td>
+          <td>${d.sno}</td>
+          <td>${d.fullName}</td>
+          <td>${d.location}</td>
+          <td>${d.region}</td>
+          <td>${d.zone}</td>
+          <td>${d.expDays}</td>
+          <td>${d.expMonths}</td>
+          <td>${d.driver}</td>
+          <td>${d.isaacScore}</td>
+          <td>${d.ticketNum}</td>
+          <td>${d.overSpeed}</td>
+          <td>${d.allCollisions}</td>
+          <td>${d.highRiskCollisions}</td>
+          <td>${d.coachable}</td>
+          <td>${d.nonCoachable}</td>
+          <td><span class="score-cell" style="background:${scoreColor}">${d.score.toFixed(1)}</span></td>
         </tr>`;
       });
       
       html += '</tbody></table></div>';
-      content.innerHTML = html;
+      area.innerHTML = html;
     }
 
-    function exportToCSV() {
-      if (filteredData.length === 0) {
-        alert('No data to export');
-        return;
-      }
+    function exportCSV() {
+      if (!displayDrivers.length) return alert('No data');
       
       const headers = ['S.No.', 'Full Name', 'Location', 'Region', 'Zone', 'Experience Days', 'Exp Months', 
                       'Driver', 'ISAAC Score', 'Ticket #', 'Over Speed', 'All Collisions', 
                       'High Risk Collisions', 'Coachable', 'Non Coachable', 'Score'];
       
       let csv = headers.join(',') + '\n';
-      filteredData.forEach(row => {
-        csv += `${row.sno},"${row.fullName}","${row.location}","${row.region}","${row.zone}",${row.expDays},${row.expMonths},"${row.driver}",${row.isaacScore},${row.ticketNum},${row.overSpeed},${row.allCollisions},${row.highRiskCollisions},${row.coachable},${row.nonCoachable},${row.score.toFixed(1)}\n`;
+      displayDrivers.forEach(d => {
+        csv += `${d.sno},"${d.fullName}","${d.location}","${d.region}","${d.zone}",${d.expDays},${d.expMonths},"${d.driver}",${d.isaacScore},${d.ticketNum},${d.overSpeed},${d.allCollisions},${d.highRiskCollisions},${d.coachable},${d.nonCoachable},${d.score.toFixed(1)}\n`;
       });
       
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const blob = new Blob([csv], {type: 'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `driver_data_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `drivers_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
     }
 
-    function exportToPDF() {
-      if (filteredData.length === 0) {
-        alert('No data to export');
-        return;
-      }
+    function exportPDF() {
+      if (!displayDrivers.length) return alert('No data');
       
-      const { jsPDF } = window.jspdf;
+      const {jsPDF} = window.jspdf;
       const doc = new jsPDF('landscape');
       
       doc.setFontSize(16);
       doc.text('Driver Risk Score Report', 14, 15);
       doc.setFontSize(10);
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 22);
-      doc.text(`Total Records: ${filteredData.length}`, 14, 27);
+      doc.text(`Records: ${displayDrivers.length}`, 14, 27);
       
-      const tableData = filteredData.map(row => [
-        row.sno, row.fullName, row.location, row.region, row.zone,
-        row.expDays, row.expMonths, row.driver, row.isaacScore,
-        row.ticketNum, row.overSpeed, row.allCollisions, row.highRiskCollisions,
-        row.coachable, row.nonCoachable, row.score.toFixed(1)
+      const tableData = displayDrivers.map(d => [
+        d.sno, d.fullName, d.location, d.region, d.zone, d.expDays, d.expMonths,
+        d.driver, d.isaacScore, d.ticketNum, d.overSpeed, d.allCollisions,
+        d.highRiskCollisions, d.coachable, d.nonCoachable, d.score.toFixed(1)
       ]);
       
       doc.autoTable({
-        head: [['No.', 'Name', 'Loc', 'Reg', 'Zone', 'Days', 'Months', 'Driver', 'ISAAC', 
-                'Ticket', 'Speed', 'Coll', 'High', 'Coach', 'Non-C', 'Score']],
+        head: [['No', 'Name', 'Loc', 'Reg', 'Zone', 'Days', 'Months', 'Drv', 'ISAAC', 'Tkt', 'Speed', 'Coll', 'High', 'Coach', 'Non-C', 'Score']],
         body: tableData,
         startY: 32,
-        styles: { fontSize: 7 },
-        headStyles: { fillColor: [52, 73, 94] }
+        styles: {fontSize: 7},
+        headStyles: {fillColor: [52, 73, 94]}
       });
       
-      doc.save(`driver_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`report_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 
     function logout() {
-      currentUser = null;
-      allData = [];
-      filteredData = [];
+      user = null;
+      allDrivers = [];
+      displayDrivers = [];
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('loginPage').style.display = 'flex';
       document.getElementById('loginForm').reset();
     }
+
+    // Auto-filter on input
+    document.getElementById('filterSearch').addEventListener('input', applyFilters);
+    document.getElementById('expMin').addEventListener('change', applyFilters);
+    document.getElementById('expMax').addEventListener('change', applyFilters);
   </script>
 </body>
 </html>
