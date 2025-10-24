@@ -268,7 +268,7 @@
       background: white;
     }
 
-    /* Checkbox list for multi-select filters */
+    /* Checkbox list */
     .checkbox-list {
       border: 1px solid #dcdde1;
       border-radius: 6px;
@@ -607,7 +607,15 @@
           body: JSON.stringify({user})
         });
         const data = await res.json();
+        
+        console.log('API Response:', data); // Debug
+        
         if (data.error) throw new Error(data.error);
+        
+        if (!data.rows || data.rows.length === 0) {
+          document.getElementById('tableArea').innerHTML = '<div class="loading">No data available</div>';
+          return;
+        }
         
         allDrivers = data.rows.map((row, idx) => ({
           sno: idx + 1,
@@ -628,11 +636,14 @@
           score: parseFloat(row[14]) || 0
         }));
         
+        console.log('Total drivers loaded:', allDrivers.length); // Debug
+        
         displayDrivers = [...allDrivers];
         setupFilters();
         updateStats();
         renderTable();
       } catch (err) {
+        console.error('Load error:', err);
         document.getElementById('tableArea').innerHTML = `<div class="loading" style="color:#e74c3c;">Error: ${err.message}</div>`;
       }
     }
@@ -643,45 +654,35 @@
       const divs = [...new Set(allDrivers.map(d => d.zone).filter(Boolean))].sort();
       const drvs = [...new Set(allDrivers.map(d => d.driver).filter(Boolean))].sort();
       
-      // Create checkboxes for Location
-      document.getElementById('filterLoc').innerHTML = locs.map(l => `
+      document.getElementById('filterLoc').innerHTML = locs.map((l, i) => `
         <div class="checkbox-item">
-          <input type="checkbox" id="loc_${l}" value="${l}" onchange="applyFilters()">
-          <label for="loc_${l}">${l}</label>
+          <input type="checkbox" id="loc_${i}" value="${l}" onchange="applyFilters()">
+          <label for="loc_${i}">${l}</label>
         </div>
       `).join('');
       
-      // Create checkboxes for Region
-      document.getElementById('filterReg').innerHTML = regs.map(r => `
+      document.getElementById('filterReg').innerHTML = regs.map((r, i) => `
         <div class="checkbox-item">
-          <input type="checkbox" id="reg_${r}" value="${r}" onchange="applyFilters()">
-          <label for="reg_${r}">${r}</label>
+          <input type="checkbox" id="reg_${i}" value="${r}" onchange="applyFilters()">
+          <label for="reg_${i}">${r}</label>
         </div>
       `).join('');
       
-      // Create checkboxes for Division
-      document.getElementById('filterDiv').innerHTML = divs.map(d => `
+      document.getElementById('filterDiv').innerHTML = divs.map((d, i) => `
         <div class="checkbox-item">
-          <input type="checkbox" id="div_${d}" value="${d}" onchange="applyFilters()">
-          <label for="div_${d}">${d}</label>
+          <input type="checkbox" id="div_${i}" value="${d}" onchange="applyFilters()">
+          <label for="div_${i}">${d}</label>
         </div>
       `).join('');
       
-      // Single select dropdown for Driver
       document.getElementById('filterDrv').innerHTML = '<option value="">All</option>' + 
         drvs.map(d => `<option value="${d}">${d}</option>`).join('');
     }
 
     function applyFilters() {
-      // Get checked locations
-      const selLocs = Array.from(document.querySelectorAll('#filterLoc input[type="checkbox"]:checked')).map(cb => cb.value);
-      
-      // Get checked regions
-      const selRegs = Array.from(document.querySelectorAll('#filterReg input[type="checkbox"]:checked')).map(cb => cb.value);
-      
-      // Get checked divisions
-      const selDivs = Array.from(document.querySelectorAll('#filterDiv input[type="checkbox"]:checked')).map(cb => cb.value);
-      
+      const selLocs = Array.from(document.querySelectorAll('#filterLoc input:checked')).map(cb => cb.value);
+      const selRegs = Array.from(document.querySelectorAll('#filterReg input:checked')).map(cb => cb.value);
+      const selDivs = Array.from(document.querySelectorAll('#filterDiv input:checked')).map(cb => cb.value);
       const selDrv = document.getElementById('filterDrv').value;
       const searchTxt = document.getElementById('filterSearch').value.toLowerCase();
       const minExp = parseInt(document.getElementById('expMin').value) || 0;
@@ -701,11 +702,7 @@
     }
 
     function resetFilters() {
-      // Uncheck all checkboxes
-      document.querySelectorAll('#filterLoc input[type="checkbox"]').forEach(cb => cb.checked = false);
-      document.querySelectorAll('#filterReg input[type="checkbox"]').forEach(cb => cb.checked = false);
-      document.querySelectorAll('#filterDiv input[type="checkbox"]').forEach(cb => cb.checked = false);
-      
+      document.querySelectorAll('.checkbox-list input').forEach(cb => cb.checked = false);
       document.getElementById('filterDrv').value = '';
       document.getElementById('filterSearch').value = '';
       document.getElementById('expMin').value = 0;
@@ -845,7 +842,6 @@
       document.getElementById('loginForm').reset();
     }
 
-    // Auto-apply filters on input changes
     document.getElementById('filterDrv').addEventListener('change', applyFilters);
     document.getElementById('filterSearch').addEventListener('input', applyFilters);
     document.getElementById('expMin').addEventListener('input', applyFilters);
